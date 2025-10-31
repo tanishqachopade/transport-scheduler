@@ -17,7 +17,15 @@
 void function_1(){
 	printf("Function_1 Executed Successfully\n");
 }
+void print_home_screen(){
+	printf("\n\t@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n");
+	printf("\t@                                             @\n");
+	printf("\t@             Transport Scheduler             @\n");
+	printf("\t@                                             @\n");
+	printf("\t@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n\n");
+}
 int main(){
+	print_home_screen();
 	char command[20];
 	while(1){
 		printf(">>");
@@ -34,4 +42,5 @@ int main(){
 		}
 	}
 }
+//End of program
 
