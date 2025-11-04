@@ -1,0 +1,17 @@
+why are we using an adjacency matrix over an adjacency list?
+
+a. we have a small fixed number of areas. (5 nodes is not a problem to store)
+
+b. we need fast lookups
+
+When you’re running Dijkstra’s Algorithm, you repeatedly check:
+
+if (graph[u][v] != 0)
+
+
+to see if there’s a connection between u and v.
+
+With a matrix, this is O(1) — just a direct access in memory.
+With a list, you’d have to traverse the neighbors of u every time.
+
+So your shortest path computations are faster and simpler this way.

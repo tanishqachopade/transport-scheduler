@@ -1,0 +1,35 @@
+101;Camp;Deccan Gymkhana;—;10;5
+102;Camp;FC Road;Deccan Gymkhana;12;7
+103;Camp;MG Road;FC Road;15;12
+104;Camp;Bund Garden;FC Road,Shivajinagar;20;15
+105;Camp;Aundh;FC Road,Shivajinagar;20;18
+106;Camp;Baner;FC Road,Shivajinagar,Aundh;25;22
+107;Camp;Balewadi;FC Road,Shivajinagar,Aundh,Baner;25;25
+108;Camp;Pashan;FC Road,Shivajinagar,Aundh,Baner;28;27
+109;Camp;Wakad;FC Road,Shivajinagar,Aundh,Baner,Balewadi;30;30
+110;Deccan Gymkhana;FC Road;—;10;5
+111;Deccan Gymkhana;Shivajinagar;—;12;6
+112;Deccan Gymkhana;Aundh;Shivajinagar;15;10
+113;Shivajinagar;FC Road;—;10;5
+114;Shivajinagar;Bund Garden;—;12;7
+115;Shivajinagar;Aundh;—;10;6
+116;Shivajinagar;Baner;Aundh;20;15
+117;Aundh;Baner;—;10;5
+118;Aundh;Balewadi;Baner;12;7
+119;Balewadi;Baner;—;10;5
+120;Balewadi;Wakad;—;12;7
+121;Wakad;Hinjewadi;—;12;6
+122;Pimple Nilakh;Pimple Saudagar;—;10;5
+123;Pimple Nilakh;Aundh;—;12;6
+124;Pimple Saudagar;Wadgaonsheri;—;15;10
+125;Wadgaonsheri;Kalyani Nagar;—;12;7
+126;Wadgaonsheri;Kharadi;—;15;12
+127;Kharadi;Hadapsar;—;12;7
+128;MG Road;Kondhwa;—;10;8
+129;Kondhwa;Bibwewadi;—;12;7
+130;Bibwewadi;Camp;—;15;10
+131;Koregaon Park;Bund Garden;—;12;6
+132;Viman Nagar;Kalyani Nagar;—;12;6
+133;Chinchwad;Pimple Saudagar;—;15;10
+134;FC Road;Shivajinagar;—;10;5
+135;Camp;Kondhwa;MG Road;30;28

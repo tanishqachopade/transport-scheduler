@@ -1,0 +1,26 @@
+ Index    Area        
+| 0     | Camp            |
+| 1     | Deccan Gymkhana |
+| 2     | Shivajinagar    |
+| 3     | FC Road         |
+| 4     | MG Road         |
+| 5     | Bund Garden     |
+| 6     | Aundh           |
+| 7     | Baner           |
+| 8     | Balewadi        |
+| 9     | Pashan          |
+| 10    | Sangvi          |
+| 11    | Kalyani Nagar   |
+| 12    | Viman Nagar     |
+| 13    | Kharadi         |
+| 14    | Wadgaonsheri    |
+| 15    | Koregaon Park   |
+| 16    | Pimple Saudagar |
+| 17    | Pimple Nilakh   |
+| 18    | Hinjewadi       |
+| 19    | Wakad           |
+| 20    | Chinchwad       |
+| 21    | Wanowrie        |
+| 22    | Hadapsar        |
+| 23    | Bibwewadi       |
+24     Kondhwa         
