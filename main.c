@@ -5,6 +5,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+void returnJourney(int stack[], int top, int graph[25][25], int n, char areas[][30], int timeSlot);
+
+
 // 1. Display functions
 void displayMainMenu() {
     printf("\n============================\n");
@@ -241,6 +244,7 @@ float calculateTime(float distance, int mode, int timeSlot) {
 }
 
 // 3.5. Bus options function
+// 3.5. Bus options function (with next bus ETA)
 void displayBusOptions(int start, int end, char areas[][30], int timeSlot) {
     FILE *fp = fopen("bus_data.txt", "r");
     if (!fp) {
@@ -254,92 +258,177 @@ void displayBusOptions(int start, int end, char areas[][30], int timeSlot) {
     printf("\n🚌 Available Bus Routes from %s to %s:\n", areas[start], areas[end]);
     printf("--------------------------------------------------\n");
 
+    // Get current time
+    time_t rawtime;
+    struct tm *current;
+    time(&rawtime);
+    current = localtime(&rawtime);
+
+    int currentHour = current->tm_hour;
+    int currentMin = current->tm_min;
+    int totalMinsNow = currentHour * 60 + currentMin;
+
     while (fgets(line, sizeof(line), fp)) {
         if (line[0] == '\n') continue;
 
-        char routeNo[10], from[30], to[30], stops[100];
+        char routeNo[10], from[30], to[30], stops[200];
         int freq, approxTime;
 
-        // Parse the line from the file
         if (sscanf(line, "%[^;];%[^;];%[^;];%[^;];%d;%d",
-                   routeNo, from, to, stops, &freq, &approxTime) == 6) {
+                   routeNo, from, to, stops, &freq, &approxTime) != 6)
+            continue;
 
-            // Match the route
-            if (strcmp(from, areas[start]) == 0 && strcmp(to, areas[end]) == 0) {
-                found = 1;
+        // Convert all to lowercase for flexible comparisons
+        char fromLower[30], toLower[30], stopsLower[200], startLower[30], endLower[30];
+        strcpy(fromLower, from); strcpy(toLower, to); strcpy(stopsLower, stops);
+        strcpy(startLower, areas[start]); strcpy(endLower, areas[end]);
 
-                // Adjust bus arrival frequency depending on timeSlot (traffic conditions)
-                // More traffic → buses take longer to arrive
-                int adjustedFreq = freq;
-                if (timeSlot == 1) adjustedFreq += 2;   // Morning mild traffic
-                else if (timeSlot == 2) adjustedFreq += 5;  // Afternoon heavier
-                else if (timeSlot == 3) adjustedFreq += 8;  // Evening peak
-                else adjustedFreq -= 2;  // Night — faster arrivals
+        for (int i = 0; fromLower[i]; i++) fromLower[i] = tolower(fromLower[i]);
+        for (int i = 0; toLower[i]; i++) toLower[i] = tolower(toLower[i]);
+        for (int i = 0; stopsLower[i]; i++) stopsLower[i] = tolower(stopsLower[i]);
+        for (int i = 0; startLower[i]; i++) startLower[i] = tolower(startLower[i]);
+        for (int i = 0; endLower[i]; i++) endLower[i] = tolower(endLower[i]);
 
-                printf("Route %s: %s → %s", routeNo, from, to);
-                if (strcmp(stops, "—") != 0 && strlen(stops) > 0)
-                    printf(" via %s", stops);
-                printf("\n  Frequency: Every %d minutes", adjustedFreq);
-                printf("\n  Approx. Travel Time: %d minutes", approxTime);
-                printf("\n  (Adjusted for current traffic conditions)\n");
-                printf("--------------------------------------------------\n");
-            }
+        int match = 0;
+
+        // ✅ Direct, reverse, or via routes
+        if (strcmp(fromLower, startLower) == 0 && strcmp(toLower, endLower) == 0)
+            match = 1;
+        else if (strcmp(toLower, startLower) == 0 && strcmp(fromLower, endLower) == 0)
+            match = 1;
+        else if (strstr(stopsLower, startLower) && strstr(stopsLower, endLower))
+            match = 1;
+        else if (strcmp(fromLower, startLower) == 0 && strstr(stopsLower, endLower))
+            match = 1;
+        else if (strcmp(toLower, endLower) == 0 && strstr(stopsLower, startLower))
+            match = 1;
+
+        if (match) {
+            found = 1;
+
+            // Adjust frequency based on time of day (traffic)
+            int adjustedFreq = freq;
+            if (timeSlot == 1) adjustedFreq += 2;   // Morning mild
+            else if (timeSlot == 2) adjustedFreq += 5;  // Afternoon heavy
+            else if (timeSlot == 3) adjustedFreq += 8;  // Evening peak
+            else adjustedFreq -= 2;                    // Night — faster
+
+            // Calculate next bus ETA
+            int nextBusMins = adjustedFreq - (totalMinsNow % adjustedFreq);
+            if (nextBusMins == adjustedFreq) nextBusMins = 0; // arriving now
+
+            int etaTotalMins = totalMinsNow + nextBusMins;
+            int etaHour = (etaTotalMins / 60) % 24;
+            int etaMin = etaTotalMins % 60;
+
+            printf("Route %s: %s → %s", routeNo, from, to);
+            if (strcmp(stops, "—") != 0 && strlen(stops) > 0)
+                printf(" via %s", stops);
+
+            printf("\n  Frequency: Every %d minutes", adjustedFreq);
+            printf("\n  Approx. Travel Time: %d minutes", approxTime);
+            printf("\n  Next Bus: In %d minutes (arrives at %02d:%02d)",
+                   nextBusMins, etaHour, etaMin);
+            printf("\n  (Adjusted for current traffic conditions)\n");
+            printf("--------------------------------------------------\n");
         }
     }
 
-    if (!found) {
-        printf("⚠️  No direct bus routes found for this selection.\n");
-    }
+    if (!found)
+        printf("⚠️  No bus routes (direct, reverse, or via stops) found for this selection.\n");
 
     fclose(fp);
 }
 
 // 4. Return Journey Function
-void returnJourney(int stack[], int top, int graph[25][25], int n, char areas[][30]) {
-    int choice;
-    printf("\nWould you like to calculate your return journey? (1 = Yes, 2 = No): ");
-    scanf("%d", &choice);
+void returnJourney(int stack[], int top, int graph[25][25], int n, char areas[][30], int timeSlot) {
+    char choice;
+    printf("\nWould you like to calculate your return journey? (1/Yes = y, 2/No = n): ");
+    scanf(" %c", &choice);
+    choice = tolower(choice);
 
-    if (choice != 1) {
+    if (choice != '1' && choice != 'y') {
         printf("\nThank you for using the Transport Route Scheduler!\n");
         return;
     }
 
-    printf("\nReversed route (return journey): ");
-for (int i = top; i >= 0; i--) {
-    printf("%s", areas[stack[i]]);
-    if (i != 0) printf(" -> ");
-}
+    printf("\n==============================\n");
+    printf("        RETURN JOURNEY        \n");
+    printf("==============================\n");
 
+    // Reverse the path stack
+    int reversedStack[25];
+    int reversedTop = -1;
+    for (int i = top; i >= 0; i--)
+        reversedStack[++reversedTop] = stack[i];
+
+    // Display return path
+    printf("\nReturn Route:\n");
+    for (int i = 0; i <= reversedTop; i++) {
+        printf("%s", areas[reversedStack[i]]);
+        if (i != reversedTop) printf(" -> ");
+    }
     printf("\n");
 
-    printf("\nDo you want to take a different mode of transport for the return trip? (y/n): ");
+    // Calculate total return distance
+    int totalDistance = 0;
+    for (int i = 0; i < reversedTop; i++) {
+        int from = reversedStack[i];
+        int to = reversedStack[i + 1];
+        if (graph[from][to] > 0)
+            totalDistance += graph[from][to];
+    }
+    printf("\nTotal Return Distance: %d km\n", totalDistance);
+
+    // Choose mode
     char ans;
+    printf("\nDo you want to take a different mode of transport for the return journey? (y/n): ");
     scanf(" %c", &ans);
     ans = tolower(ans);
 
-    int mode;
+    int returnMode;
     if (ans == 'y') {
-        printf("\nSelect Mode of Transport for Return:\n");
-        printf("1. Bus\n");
-        printf("2. Car\n");
-        printf("3. Bike/Scooter\n");
+        printf("\nSelect Return Mode of Transport:\n");
+        printf("1. Bus\n2. Car\n3. Bike/Scooter\n");
         printf("Enter your choice: ");
-        scanf("%d", &mode);
-    } else mode = 1;
-
-    int timeSlot = getTimeSlot();
-    int distance = 0;
-    for (int i = 0; i < top; i++) {
-        int u = stack[i];
-        int v = stack[i + 1];
-        if (graph[u][v] != 0) distance += graph[u][v];
+        scanf("%d", &returnMode);
+        while (returnMode < 1 || returnMode > 3) {
+            printf("Invalid choice. Enter 1, 2, or 3: ");
+            scanf("%d", &returnMode);
+        }
+    } else {
+        printf("\nUsing the same mode as your onward journey.\n");
+        returnMode = 1;
     }
 
-    printf("\nTotal distance for return journey: %d km\n", distance);
-    calculateTime((float)distance, mode, timeSlot);
-    printf("\n✅ Return journey details computed successfully.\n");
+    // Choose time slot
+    printf("\nDo you want to use the same time of travel for the return journey? (y/n): ");
+    char reuseTime;
+    scanf(" %c", &reuseTime);
+    reuseTime = tolower(reuseTime);
+
+    int returnTimeSlot = (reuseTime == 'y') ? timeSlot : getTimeSlot();
+
+    // Calculate time
+    float returnTime = calculateTime((float)totalDistance, returnMode, returnTimeSlot);
+    printf("\nEstimated Return Travel Time: %.1f minutes\n", returnTime);
+
+    // Auto show bus routes
+    if (returnMode == 1) {
+        int start = reversedStack[0];
+        int end = reversedStack[reversedTop];
+        printf("\nWould you like to view available bus routes for your return journey? (y/n): ");
+        char showBus;
+        scanf(" %c", &showBus);
+        if (tolower(showBus) == 'y')
+            displayBusOptions(start, end, areas, returnTimeSlot);
+    }
+
+    printf("\n==============================\n");
+    printf("      RETURN JOURNEY END      \n");
+    printf("==============================\n");
 }
+
 
 // 5. Main Function
 int main() {
@@ -382,8 +471,7 @@ int main() {
          displayBusOptions(start, end, areas, timeSlot);
     }
 
+    returnJourney(stack, top, graph, n, areas, timeSlot);
 
-    
-    returnJourney(stack, top, graph, n, areas);
     return 0;
 }
