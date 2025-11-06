@@ -123,8 +123,8 @@ void buildGraph(int graph[25][25], int n) {
 }
 
 int minDistance(int dist[], int visited[], int n) {
-    int min = INT_MAX;
-    int min_index = -1;
+    int min = INT_MAX;  // (like around infity is the distance right now, any other real distance will always be less than that)
+    int min_index = -1; // (index of node that has minimum distance )
     for (int v = 0; v < n; v++) {
         if (visited[v] == 0 && dist[v] <= min) {
             min = dist[v];
@@ -137,23 +137,23 @@ int minDistance(int dist[], int visited[], int n) {
 int dijkstra(int graph[25][25], int n, int start, int end, int parent[], char areas[][30]) {
     int dist[25], visited[25];
     for (int i = 0; i < n; i++) {
-        dist[i] = INT_MAX;
-        visited[i] = 0;
-        parent[i] = -1;
+        dist[i] = INT_MAX;   //distance to all the nodes is infinity initially
+        visited[i] = 0;    //no nodes are visited yet
+        parent[i] = -1;    //we dont know any predessecors yet
     }
 
     dist[start] = 0;
 
     for (int count = 0; count < n - 1; count++) {
         int u = minDistance(dist, visited, n);
-        if (u == -1) break;
+        if (u == -1) break; //this happens when the node is not connected to any other places 
         visited[u] = 1;
 
-        for (int v = 0; v < n; v++) {
+        for (int v = 0; v < n; v++) { //this loop will look at all the other nodes 
             if (!visited[v] && graph[u][v] && dist[u] != INT_MAX &&
-                dist[u] + graph[u][v] < dist[v]) {
-                dist[v] = dist[u] + graph[u][v];
-                parent[v] = u;
+                dist[u] + graph[u][v] < dist[v]) { //if not visited and there is a connection and distance to u is not infinityand the new distance is less than the old distance
+                dist[v] = dist[u] + graph[u][v]; //distance now shorter and updated 
+                parent[v] = u; //now a new predessesor
             }
         }
     }
@@ -169,9 +169,9 @@ void displayShortestPath(int parent[], int end, char areas[][30], int stack[], i
     }
 
     printf(" Path: ");
-    for (int i = count - 1; i >= 0; i--) {
+    for (int i = count - 1; i >= 0; i--) {    //starting from the end and going backwards till we can't find a parent 
         printf("%s", areas[path[i]]);
-        stack[++(*top)] = path[i];
+        stack[++(*top)] = path[i]; //storing it the stack so we can find out return journey
         if (i != 0) printf(" -> ");
     }
     printf("\n");
@@ -181,7 +181,7 @@ void displayShortestPath(int parent[], int end, char areas[][30], int stack[], i
 int getTimeSlot() {
     char ans;
     int choice;
-    time_t t;
+    time_t t;   //hold time as secs
     struct tm *currentTime;
 
     printf("\nAre you travelling right now? (y/n): ");
@@ -189,14 +189,14 @@ int getTimeSlot() {
     ans = tolower(ans);
 
     if (ans == 'y') {
-        time(&t);
-        currentTime = localtime(&t);
-        int hour = currentTime->tm_hour;
+        time(&t);                 //gets local time 
+        currentTime = localtime(&t); //converts that to local
+        int hour = currentTime->tm_hour;  //24 hr clock
 
-        if (hour >= 6 && hour < 11) choice = 1;
-        else if (hour >= 11 && hour < 16) choice = 2;
-        else if (hour >= 16 && hour < 21) choice = 3;
-        else choice = 4;
+        if (hour >= 6 && hour < 11) choice = 1;  //morn
+        else if (hour >= 11 && hour < 16) choice = 2; //afternoon
+        else if (hour >= 16 && hour < 21) choice = 3; //eve
+        else choice = 4;   //night
 
         printf("\nDetected current time: %02d:%02d\n", hour, currentTime->tm_min);
     } else {
@@ -243,19 +243,18 @@ float calculateTime(float distance, int mode, int timeSlot) {
     return timeMinutes;
 }
 
-// 3.5. Bus options function
 // 3.5. Bus options function (with next bus ETA)
 void displayBusOptions(int start, int end, char areas[][30], int timeSlot) {
     FILE *fp = fopen("bus_data.txt", "r");
-    if (!fp) {
-        printf("\n⚠️ Could not open bus_data.txt file.\n");
+    if (fp == NULL) {
+        printf("\n Could not open bus_data.txt file.\n");
         return;
     }
 
     char line[256];
     int found = 0;
 
-    printf("\n🚌 Available Bus Routes from %s to %s:\n", areas[start], areas[end]);
+    printf("\n Available Bus Routes from %s to %s:\n", areas[start], areas[end]);
     printf("--------------------------------------------------\n");
 
     // Get current time
@@ -292,15 +291,15 @@ void displayBusOptions(int start, int end, char areas[][30], int timeSlot) {
         int match = 0;
 
         // ✅ Direct, reverse, or via routes
-        if (strcmp(fromLower, startLower) == 0 && strcmp(toLower, endLower) == 0)
+        if (strcmp(fromLower, startLower) == 0 && strcmp(toLower, endLower) == 0) //direct route
             match = 1;
-        else if (strcmp(toLower, startLower) == 0 && strcmp(fromLower, endLower) == 0)
+        else if (strcmp(toLower, startLower) == 0 && strcmp(fromLower, endLower) == 0) //reverse route
             match = 1;
-        else if (strstr(stopsLower, startLower) && strstr(stopsLower, endLower))
+        else if (strstr(stopsLower, startLower) && strstr(stopsLower, endLower)) //via route
             match = 1;
-        else if (strcmp(fromLower, startLower) == 0 && strstr(stopsLower, endLower))
+        else if (strcmp(fromLower, startLower) == 0 && strstr(stopsLower, endLower)) //start matches, end is via stops
             match = 1;
-        else if (strcmp(toLower, endLower) == 0 && strstr(stopsLower, startLower))
+        else if (strcmp(toLower, endLower) == 0 && strstr(stopsLower, startLower)) //reverse start matches, end is via stops
             match = 1;
 
         if (match) {
@@ -314,7 +313,8 @@ void displayBusOptions(int start, int end, char areas[][30], int timeSlot) {
             else adjustedFreq -= 2;                    // Night — faster
 
             // Calculate next bus ETA
-            int nextBusMins = adjustedFreq - (totalMinsNow % adjustedFreq);
+            int nextBusMins = adjustedFreq - (totalMinsNow % adjustedFreq);  // (totalMinsNow % adjustedFreq) → mins since last bus; subtract from adjustedFreq → mins until next bus
+
             if (nextBusMins == adjustedFreq) nextBusMins = 0; // arriving now
 
             int etaTotalMins = totalMinsNow + nextBusMins;
@@ -365,14 +365,14 @@ void returnJourney(int stack[], int top, int graph[25][25], int n, char areas[][
     // Display return path
     printf("\nReturn Route:\n");
     for (int i = 0; i <= reversedTop; i++) {
-        printf("%s", areas[reversedStack[i]]);
+        printf("%s", areas[reversedStack[i]]);  //printing the foward stack in reverse order 
         if (i != reversedTop) printf(" -> ");
     }
     printf("\n");
 
     // Calculate total return distance
     int totalDistance = 0;
-    for (int i = 0; i < reversedTop; i++) {
+    for (int i = 0; i < reversedTop; i++) { 
         int from = reversedStack[i];
         int to = reversedStack[i + 1];
         if (graph[from][to] > 0)
@@ -402,7 +402,7 @@ void returnJourney(int stack[], int top, int graph[25][25], int n, char areas[][
     }
 
     // Choose time slot
-    printf("\nDo you want to use the same time of travel for the return journey? (y/n): ");
+    printf("\nAre you planning on returning in the same time slot as your onward journey? (y/n): ");
     char reuseTime;
     scanf(" %c", &reuseTime);
     reuseTime = tolower(reuseTime);
